@@ -28,14 +28,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useToast } from '@/hooks/use-toast';
 
 export default function StrategyPage() {
+  const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     strategyName: '',
-    status: false,
+    status: true, // Always set to true
   });
   const [detailedFormData, setDetailedFormData] = useState({
     strikePrice: '',
@@ -44,13 +47,6 @@ export default function StrategyPage() {
     option: '',
   });
   const [submittedEntries, setSubmittedEntries] = useState([]);
-
-  const handleStatusChange = (checked) => {
-    setFormData({ ...formData, status: checked });
-    if (checked) {
-      setIsDialogOpen(true);
-    }
-  };
 
   const handleDetailedSubmit = (e) => {
     e.preventDefault();
@@ -62,27 +58,13 @@ export default function StrategyPage() {
       setEditingId(null);
     } else {
       const newEntry = {
-        ...formData,
-        ...detailedFormData,
+        ...detailedFormData, // Only reset detailed form data
         id: Date.now(),
       };
       setSubmittedEntries([...submittedEntries, newEntry]);
     }
     
-    resetForms();
-  };
-
-  const handleFinalSubmit = () => {
-    console.log('Final submission:', submittedEntries);
-  };
-
-  const resetForms = () => {
-    if (!isEditMode) {
-      setFormData({
-        strategyName: '',
-        status: false,
-      });
-    }
+    // Modified resetForms to only reset detailed form data
     setDetailedFormData({
       strikePrice: '',
       tradingSymbol: '',
@@ -90,6 +72,89 @@ export default function StrategyPage() {
       option: '',
     });
     setIsDialogOpen(false);
+  };
+
+  const handleFinalSubmit = async () => {
+    try {
+      setIsLoading(true);
+      
+      if (!formData.strategyName.trim()) {
+        toast({
+          title: "Validation Error",
+          description: "Strategy name is required",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (submittedEntries.length === 0) {
+        toast({
+          title: "Validation Error",
+          description: "At least one strategy detail is required",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const payload = {
+        strategyName: formData.strategyName.trim(),
+        status: true, // Always true
+        strategyDetails: submittedEntries.map(entry => ({
+          strikePrice: Number(entry.strikePrice),
+          tradingSymbol: entry.tradingSymbol.trim(),
+          instrumentToken: entry.instrumentToken.trim(),
+          type: entry.option
+        }))
+      };
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast({
+          title: "Authentication Error",
+          description: "Please login to create a strategy",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const response = await fetch('http://localhost:8000/strategies/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      toast({
+        title: "Success",
+        description: "Strategy created successfully!",
+      });
+
+      // Reset only after successful submission
+      setSubmittedEntries([]);
+      setFormData({
+        strategyName: '',
+        status: true,
+      });
+
+    } catch (error) {
+      console.error('Error submitting strategy:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create strategy",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEdit = (entry) => {
@@ -143,8 +208,8 @@ export default function StrategyPage() {
                 <Label htmlFor="status">Strategy Status</Label>
                 <Switch
                   id="status"
-                  checked={formData.status}
-                  onCheckedChange={handleStatusChange}
+                  checked={true}
+                  disabled={true}
                 />
               </div>
             </div>
@@ -211,8 +276,12 @@ export default function StrategyPage() {
             </div>
             {submittedEntries.length > 0 && (
               <div className="flex justify-end">
-                <Button onClick={handleFinalSubmit} className="w-32">
-                  Submit All
+                <Button 
+                  onClick={handleFinalSubmit} 
+                  className="w-32"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Submitting...' : 'Submit All'}
                 </Button>
               </div>
             )}
