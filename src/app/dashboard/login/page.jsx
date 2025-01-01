@@ -1,3 +1,4 @@
+
 // app/login/page.jsx
 "use client";
 import { useState } from "react";
@@ -15,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Lock, Mail } from "lucide-react";
 import ForgotPasswordDialog from "./forgot-password-dialog";
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,9 +36,11 @@ export default function LoginPage() {
 
     try {
       const response = await fetch(`http://localhost:8000/users/login`, {
+
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
+
       });
 
       const data = await response.json();
@@ -50,9 +54,11 @@ export default function LoginPage() {
         throw new Error("Login failed");
       }
 
+
       router.push("/dashboard");
     } catch (err) {
       setError("Invalid email or password");
+
     } finally {
       setLoading(false);
     }
@@ -61,7 +67,6 @@ export default function LoginPage() {
   const handleForgotPasswordSuccess = () => {
     setShowForgotPassword(false);
     setResetSuccess(true);
-    // Reset success message after 5 seconds
     setTimeout(() => setResetSuccess(false), 5000);
   };
 
