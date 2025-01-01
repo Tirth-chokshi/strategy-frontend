@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { Pencil, Trash2, Plus, AlertCircle } from 'lucide-react';
+import { Pencil, Trash2, Plus, AlertCircle, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -18,9 +18,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-
+import { useRouter } from 'next/navigation';
 const StrategiesPage = () => {
   const { toast } = useToast();
+  const router = useRouter();
   const [strategies, setStrategies] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -34,52 +35,51 @@ const StrategiesPage = () => {
     console.error('Strategy page error:', error);
     setError('An unexpected error occurred');
     setIsLoading(false);
-};
+  };
 
-useEffect(() => {
+  useEffect(() => {
     fetchStrategies().catch(handleError);
-}, []);
+  }, []);
 
   const fetchStrategies = async () => {
     try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            throw new Error('No authentication token found');
-        }
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
 
-        const response = await fetch('http://localhost:8000/strategies/get/user', {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            }
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to fetch strategies');
+      const response = await fetch('http://localhost:8000/strategies/get/user', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
         }
+      });
 
-        const data = await response.json();
-        
-        // Check if data.strategies exists and is an array
-        if (!Array.isArray(data.strategies)) {
-            console.error('Invalid strategies data:', data);
-            throw new Error('Invalid response format');
-        }
-        
-        setStrategies(data.strategies);
-        setError(null);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch strategies');
+      }
+
+      const data = await response.json();
+
+      if (!Array.isArray(data.strategies)) {
+        console.error('Invalid strategies data:', data);
+        throw new Error('Invalid response format');
+      }
+
+      setStrategies(data.strategies);
+      setError(null);
     } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch strategies';
-        setError(errorMessage);
-        toast({
-            title: "Error",
-            description: errorMessage,
-            variant: "destructive",
-        });
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch strategies';
+      setError(errorMessage);
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
-};
+  };
 
   const confirmDelete = (strategy) => {
     setStrategyToDelete(strategy);
@@ -88,7 +88,7 @@ useEffect(() => {
 
   const handleDelete = async () => {
     if (!strategyToDelete) return;
-    
+
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem('token');
@@ -137,8 +137,8 @@ useEffect(() => {
         throw new Error(error.message || 'Failed to toggle strategy status');
       }
 
-      setStrategies(strategies.map(strategy => 
-        strategy._id === strategyId 
+      setStrategies(strategies.map(strategy =>
+        strategy._id === strategyId
           ? { ...strategy, status: !strategy.status }
           : strategy
       ));
@@ -164,7 +164,7 @@ useEffect(() => {
   const handleUpdateStrategy = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:8000/strategies/update/${editingStrategy._id}`, {
@@ -184,7 +184,7 @@ useEffect(() => {
         throw new Error(error.message || 'Failed to update strategy');
       }
 
-      setStrategies(strategies.map(strategy => 
+      setStrategies(strategies.map(strategy =>
         strategy._id === editingStrategy._id ? editingStrategy : strategy
       ));
 
@@ -203,6 +203,10 @@ useEffect(() => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleView = (strategy_id) => {
+    router.push(`/dashboard/strategy-display/${strategy_id}`);
   };
 
   if (isLoading) {
@@ -241,7 +245,6 @@ useEffect(() => {
       </div>
     );
   }
-  
 
   return (
     <div className="min-h-screen p-8 bg-gray-50">
@@ -306,6 +309,14 @@ useEffect(() => {
                               className="text-red-500 hover:text-red-600 hover:bg-red-50"
                             >
                               <Trash2 className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleView(strategy._id)}
+                              className="hover:bg-gray-100"
+                            >
+                              <Eye className="w-4 h-4" />
                             </Button>
                           </div>
                         </td>
