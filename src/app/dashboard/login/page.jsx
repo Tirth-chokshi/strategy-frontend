@@ -1,4 +1,3 @@
-// app/login/page.jsx
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -30,17 +29,27 @@ export default function LoginPage() {
     try {
       const response = await fetch(`http://localhost:8000/users/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        headers: { 
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
       });
 
       if (!response.ok) {
         throw new Error('Login failed');
       }
 
-      router.push('/dashboard');
+      const data = await response.json();
+      
+      if (data.token) {
+        localStorage.setItem('authToken', data.token);
+        router.push('/dashboard');
+      } else {
+        throw new Error('No token received');
+      }
     } catch (err) {
       setError('Invalid email or password');
+      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }
@@ -49,7 +58,6 @@ export default function LoginPage() {
   const handleForgotPasswordSuccess = () => {
     setShowForgotPassword(false);
     setResetSuccess(true);
-    // Reset success message after 5 seconds
     setTimeout(() => setResetSuccess(false), 5000);
   };
 
