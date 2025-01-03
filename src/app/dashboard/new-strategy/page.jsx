@@ -29,8 +29,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export default function StrategyPage() {
+  const router = useRouter();
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -145,6 +147,7 @@ export default function StrategyPage() {
         status: true,
       });
 
+      router.push('/dashboard/strategy-display');
     } catch (error) {
       console.error('Error submitting strategy:', error);
       toast({
