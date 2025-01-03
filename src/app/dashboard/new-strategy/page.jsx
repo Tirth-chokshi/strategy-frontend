@@ -1,19 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Pencil, Trash2, Plus } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -38,9 +31,10 @@ export default function StrategyPage() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
   const [formData, setFormData] = useState({
     strategyName: '',
-    status: true, // Always set to true
+    status: true,
   });
   const [detailedFormData, setDetailedFormData] = useState({
     strikePrice: '',
@@ -49,6 +43,56 @@ export default function StrategyPage() {
     option: '',
   });
   const [submittedEntries, setSubmittedEntries] = useState([]);
+
+  // Function to fetch option details
+  const fetchOptionDetails = async (strikePrice, tradingSymbol) => {
+    if (!strikePrice || !tradingSymbol) return;
+    
+    try {
+      setIsFetching(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch('http://localhost:8000/options/details', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ strikePrice, tradingSymbol })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch option details');
+      }
+
+      const data = await response.json();
+      
+      setDetailedFormData(prev => ({
+        ...prev,
+        instrumentToken: data.instrumentToken.toString(),
+        option: data.option
+      }));
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch option details",
+        variant: "destructive",
+      });
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  // Effect to trigger fetch when strike price and trading symbol are entered
+  useEffect(() => {
+    if (detailedFormData.strikePrice && detailedFormData.tradingSymbol) {
+      const debounceTimer = setTimeout(() => {
+        fetchOptionDetails(detailedFormData.strikePrice, detailedFormData.tradingSymbol);
+      }, 500); // Debounce for 500ms
+
+      return () => clearTimeout(debounceTimer);
+    }
+  }, [detailedFormData.strikePrice, detailedFormData.tradingSymbol]);
 
   const handleDetailedSubmit = (e) => {
     e.preventDefault();
@@ -60,13 +104,12 @@ export default function StrategyPage() {
       setEditingId(null);
     } else {
       const newEntry = {
-        ...detailedFormData, // Only reset detailed form data
+        ...detailedFormData,
         id: Date.now(),
       };
       setSubmittedEntries([...submittedEntries, newEntry]);
     }
     
-    // Modified resetForms to only reset detailed form data
     setDetailedFormData({
       strikePrice: '',
       tradingSymbol: '',
@@ -290,7 +333,6 @@ export default function StrategyPage() {
             )}
           </CardContent>
         </Card>
-
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
           if (!open) {
@@ -330,26 +372,19 @@ export default function StrategyPage() {
                 <Input
                   id="instrumentToken"
                   value={detailedFormData.instrumentToken}
-                  onChange={(e) => setDetailedFormData({ ...detailedFormData, instrumentToken: e.target.value })}
-                  required
+                  disabled
+                  className="bg-gray-100"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="option">Option</Label>
-                <Select
+                <Input
+                  id="option"
                   value={detailedFormData.option}
-                  onValueChange={(value) => setDetailedFormData({ ...detailedFormData, option: value })}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select option type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CE">CE</SelectItem>
-                    <SelectItem value="PE">PE</SelectItem>
-                  </SelectContent>
-                </Select>
+                  disabled
+                  className="bg-gray-100"
+                />
               </div>
 
               <div className="flex space-x-2 justify-end">
@@ -360,8 +395,11 @@ export default function StrategyPage() {
                 }}>
                   Cancel
                 </Button>
-                <Button type="submit">
-                  {isEditMode ? 'Save Changes' : 'Submit'}
+                <Button 
+                  type="submit"
+                  disabled={isFetching || !detailedFormData.instrumentToken || !detailedFormData.option}
+                >
+                  {isFetching ? 'Fetching...' : isEditMode ? 'Save Changes' : 'Submit'}
                 </Button>
               </div>
             </form>
