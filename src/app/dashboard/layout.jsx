@@ -45,15 +45,7 @@ export default function DashboardLayout({ children }) {
                 <Eye size={20} />
                 <span>Strategies</span>
               </button>
-              <button
-                className="flex items-center gap-2 text-white px-4 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
-                onClick={() =>
-                  (window.location.href = "/dashboard/new-strategy")
-                }
-              >
-                <Plus size={20} />
-                <span>New</span>
-              </button>
+             
               <button
                 className="flex items-center gap-2 text-white px-4 py-3 rounded-lg hover:bg-white/10 transition-all duration-300 w-full"
                 onClick={handleLogout}
@@ -76,15 +68,7 @@ export default function DashboardLayout({ children }) {
                 <Eye size={20} />
                 <span>Strategies</span>
               </button>
-              <button
-                className="flex items-center gap-2 text-white px-4 py-3 rounded-lg hover:bg-white/10 transition-all duration-300 w-full"
-                onClick={() =>
-                  (window.location.href = "/dashboard/new-strategy")
-                }
-              >
-                <Plus size={20} />
-                <span>New</span>
-              </button>
+             
               <button className="flex items-center gap-2 text-white px-4 py-3 rounded-lg hover:bg-white/10 transition-all duration-300 w-full"
               onClick={handleLogout}>
                 <LogOut size={20} />
