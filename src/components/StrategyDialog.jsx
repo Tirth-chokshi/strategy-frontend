@@ -37,6 +37,7 @@ const StrategyDialog = ({ strategyId, onUpdate, onDelete }) => {
   const [deleteDetailDialogOpen, setDeleteDetailDialogOpen] = useState(false);
   const [selectedDetailId, setSelectedDetailId] = useState(null);
   const [isAddStrikeOpen, setIsAddStrikeOpen] = useState(false);
+  const apiurl = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     if (isOpen) {
@@ -48,7 +49,7 @@ const StrategyDialog = ({ strategyId, onUpdate, onDelete }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8000/strategies/${strategyId}/details`,
+        `${apiurl}/strategies/${strategyId}/details`,
         {
           method: "POST",
           headers: {
@@ -86,7 +87,7 @@ const StrategyDialog = ({ strategyId, onUpdate, onDelete }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8000/strategies/get/${strategyId}`,
+        `${apiurl}/strategies/get/${strategyId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -139,7 +140,7 @@ const StrategyDialog = ({ strategyId, onUpdate, onDelete }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8000/strategies/${strategyId}/details/${selectedDetailId}`,
+        `${apiurl}/strategies/${strategyId}/details/${selectedDetailId}`,
         {
           method: "DELETE",
           headers: {
@@ -185,7 +186,7 @@ const StrategyDialog = ({ strategyId, onUpdate, onDelete }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8000/strategies/update/${strategyId}`,
+        `${apiurl}/strategies/update/${strategyId}`,
         {
           method: "PUT",
           headers: {
@@ -222,7 +223,7 @@ const StrategyDialog = ({ strategyId, onUpdate, onDelete }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8000/strategies/delete/${strategyId}`,
+        `${apiurl}/strategies/delete/${strategyId}`,
         {
           method: "DELETE",
           headers: {

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 export default function DashboardLayout({ children }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
+  const apiurl = process.env.NEXT_PUBLIC_API_URL;
   const handleLogout = async () => {
     try {
       const response = await authService.logout();

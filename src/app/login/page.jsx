@@ -21,6 +21,7 @@ import { authService } from "@/services/authService";
 
 export default function LoginPage() {
   const router = useRouter();
+  const apiurl = process.env.NEXT_PUBLIC_API_URL;
   const [formData, setFormData] = useState({
     email: "",
     password: "",

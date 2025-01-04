@@ -32,6 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
 export default function StrategyPage() {
+  const apiurl = process.env.NEXT_PUBLIC_API_URL;
   const router = useRouter();
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -99,7 +100,7 @@ export default function StrategyPage() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        "http://localhost:8000/options/suggestions",
+        `${apiurl}/options/suggestions`,
         {
           method: "POST",
           headers: {
@@ -142,7 +143,7 @@ export default function StrategyPage() {
       setIsFetching(true);
       const token = localStorage.getItem("token");
 
-      const response = await fetch(`http://localhost:8000/options/details`, {
+      const response = await fetch(`${apiurl}/options/details`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -307,7 +308,7 @@ export default function StrategyPage() {
         return;
       }
 
-      const response = await fetch("http://localhost:8000/strategies/create", {
+      const response = await fetch(`${apiurl}/strategies/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

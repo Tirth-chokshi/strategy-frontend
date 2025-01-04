@@ -14,6 +14,7 @@ const AddStrikeDialog = ({ isOpen, onClose, onSubmit, isLoading }) => {
   const [strikeInputValue, setStrikeInputValue] = useState('');
   const [strikePriceSuggestions, setStrikePriceSuggestions] = useState([]);
   const [availableOptions, setAvailableOptions] = useState([]);
+  const apiurl = process.env.NEXT_PUBLIC_API_URL;
   
   const [detailedFormData, setDetailedFormData] = useState({
     strikePrice: '',
@@ -42,7 +43,7 @@ const AddStrikeDialog = ({ isOpen, onClose, onSubmit, isLoading }) => {
       setIsLoadingSuggestions(true);
       const token = localStorage.getItem('token');
       
-      const response = await fetch('http://localhost:8000/options/suggestions', {
+      const response = await fetch(`${apiurl}/options/suggestions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -81,7 +82,7 @@ const AddStrikeDialog = ({ isOpen, onClose, onSubmit, isLoading }) => {
       setIsFetching(true);
       const token = localStorage.getItem('token');
       
-      const response = await fetch('http://localhost:8000/options/details', {
+      const response = await fetch(`${apiurl}/options/details`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
