@@ -69,8 +69,8 @@ export default function StrategyPage() {
       
       setDetailedFormData(prev => ({
         ...prev,
-        instrumentToken: data.instrumentToken.toString(),
-        option: data.option
+        instrumentToken: data.options[0].instrumentToken.toString(),
+        option: data.options[0].option
       }));
     } catch (error) {
       toast({
