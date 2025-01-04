@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -32,8 +32,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
 export default function StrategyPage() {
-  console.log('StrategyPage component rendering'); // Debug log
-
   const router = useRouter();
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -42,22 +40,79 @@ export default function StrategyPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
   const [availableOptions, setAvailableOptions] = useState([]);
+  const [strikePriceSuggestions, setStrikePriceSuggestions] = useState([]);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [strikeInputValue, setStrikeInputValue] = useState('');
+
   const [formData, setFormData] = useState({
     strategyName: '',
     status: true,
   });
+
   const [detailedFormData, setDetailedFormData] = useState({
     strikePrice: '',
     tradingSymbol: '',
     instrumentToken: '',
     option: '',
   });
+
   const [submittedEntries, setSubmittedEntries] = useState([]);
-  const [strikePrices] = useState(['21000', '21500', '22000', '22200', '22500', '23000']);
+
+  // Debounce function
+  const debounce = (func, wait) => {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+  };
+
+  // Function to fetch strike price suggestions
+  const fetchStrikePriceSuggestions = async (query) => {
+    if (!query || query.length === 0) {
+      setStrikePriceSuggestions([]);
+      return;
+    }
+
+    try {
+      setIsLoadingSuggestions(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch('http://localhost:8000/options/suggestions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ query })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch suggestions');
+      }
+
+      const data = await response.json();
+      setStrikePriceSuggestions(data.suggestions);
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch strike price suggestions",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingSuggestions(false);
+    }
+  };
+
+  // Create debounced version of fetch suggestions
+  const debouncedFetchSuggestions = useCallback(
+    debounce(fetchStrikePriceSuggestions, 300),
+    []
+  );
 
   // Function to fetch option details
   const fetchOptionDetails = async (strikePrice) => {
-    console.log('Fetching options for strike price:', strikePrice); // Debug log
     if (!strikePrice) return;
     
     try {
@@ -78,10 +133,9 @@ export default function StrategyPage() {
       }
 
       const data = await response.json();
-      console.log('Received options:', data.options); // Debug log
       setAvailableOptions(data.options);
     } catch (error) {
-      console.error('Error fetching options:', error); // Debug log
+      console.error('Error fetching options:', error);
       toast({
         title: "Error",
         description: "Failed to fetch option details",
@@ -92,20 +146,7 @@ export default function StrategyPage() {
     }
   };
 
-  const handleStrikePriceChange = (value) => {
-    console.log('Strike price changed to:', value); // Debug log
-    setDetailedFormData(prev => ({
-      ...prev,
-      strikePrice: value,
-      tradingSymbol: '',
-      instrumentToken: '',
-      option: ''
-    }));
-    fetchOptionDetails(value);
-  };
-
   const handleTradingSymbolChange = (value) => {
-    console.log('Trading symbol changed to:', value); // Debug log
     const selectedOption = availableOptions.find(opt => opt.tradingSymbol === value);
     if (selectedOption) {
       setDetailedFormData(prev => ({
@@ -119,9 +160,7 @@ export default function StrategyPage() {
 
   const handleDetailedSubmit = (e) => {
     e.preventDefault();
-    console.log('Submitting form with data:', detailedFormData); // Debug log
     
-    // Check for duplicates
     const isDuplicate = submittedEntries.some(entry => 
       entry.strikePrice === detailedFormData.strikePrice && 
       entry.tradingSymbol === detailedFormData.tradingSymbol &&
@@ -157,11 +196,11 @@ export default function StrategyPage() {
       instrumentToken: '',
       option: '',
     });
+    setStrikeInputValue('');
     setIsDialogOpen(false);
   };
 
   const handleAddMore = () => {
-    console.log('Opening dialog for new entry'); // Debug log
     setIsEditMode(false);
     setDetailedFormData({
       strikePrice: '',
@@ -169,28 +208,26 @@ export default function StrategyPage() {
       instrumentToken: '',
       option: '',
     });
+    setStrikeInputValue('');
     setIsDialogOpen(true);
   };
 
   const handleEdit = (entry) => {
-    console.log('Editing entry:', entry); // Debug log
     setDetailedFormData({
       strikePrice: entry.strikePrice,
       tradingSymbol: entry.tradingSymbol,
       instrumentToken: entry.instrumentToken,
       option: entry.option,
     });
+    setStrikeInputValue(entry.strikePrice);
     setIsEditMode(true);
     setEditingId(entry.id);
     setIsDialogOpen(true);
   };
 
   const handleDelete = (id) => {
-    console.log('Deleting entry:', id); // Debug log
     setSubmittedEntries(submittedEntries.filter(entry => entry.id !== id));
   };
-
-
 
   const handleFinalSubmit = async () => {
     try {
@@ -216,7 +253,7 @@ export default function StrategyPage() {
 
       const payload = {
         strategyName: formData.strategyName.trim(),
-        status: true, // Always true
+        status: true,
         strategyDetails: submittedEntries.map(entry => ({
           strikePrice: Number(entry.strikePrice),
           tradingSymbol: entry.tradingSymbol.trim(),
@@ -256,7 +293,6 @@ export default function StrategyPage() {
         description: "Strategy created successfully!",
       });
 
-      // Reset form after successful submission
       setSubmittedEntries([]);
       setFormData({
         strategyName: '',
@@ -381,11 +417,12 @@ export default function StrategyPage() {
         </Card>
 
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          console.log('Dialog open state changed to:', open); // Debug log
           setIsDialogOpen(open);
           if (!open) {
             setIsEditMode(false);
             setEditingId(null);
+            setStrikePriceSuggestions([]);
+            setStrikeInputValue('');
           }
         }}>
           <DialogContent className="sm:max-w-md">
@@ -397,21 +434,47 @@ export default function StrategyPage() {
             <form onSubmit={handleDetailedSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="strikePrice">Strike Price</Label>
-                <Select
-                  value={detailedFormData.strikePrice}
-                  onValueChange={handleStrikePriceChange}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Strike Price" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {strikePrices.map((price) => (
-                      <SelectItem key={price} value={price}>
-                        {price}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="relative">
+                  <Input
+                    id="strikePrice"
+                    type="text"
+                    value={strikeInputValue}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setStrikeInputValue(value);
+                      debouncedFetchSuggestions(value);
+                    }}
+                    className="w-full"
+                    placeholder="Type to search strike prices..."
+                  />
+                  {isLoadingSuggestions && (
+                    <div className="absolute right-3 top-3">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+                    </div>
+                  )}
+                  {strikePriceSuggestions.length > 0 && (
+                    <div className="absolute w-full mt-1 bg-white border rounded-md shadow-lg z-50 max-h-48 overflow-auto">
+                      {strikePriceSuggestions.map((price) => (
+                        <div
+                          key={price}
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => {
+                            
+                              setStrikeInputValue(price.toString());
+                            setDetailedFormData(prev => ({
+                              ...prev,
+                              strikePrice: price.toString()
+                            }));
+                            fetchOptionDetails(price.toString());
+                            setStrikePriceSuggestions([]);
+                          }}
+                        >
+                          {price}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -459,6 +522,8 @@ export default function StrategyPage() {
                   setIsDialogOpen(false);
                   setIsEditMode(false);
                   setEditingId(null);
+                  setStrikePriceSuggestions([]);
+                  setStrikeInputValue('');
                 }}>
                   Cancel
                 </Button>
