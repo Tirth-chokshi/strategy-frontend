@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 import { useParams } from "next/navigation"
 

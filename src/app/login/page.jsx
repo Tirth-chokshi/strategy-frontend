@@ -55,7 +55,7 @@ export default function LoginPage() {
       }
 
 
-      router.push("/");
+      router.push("/dashboard/strategy-display");
     } catch (err) {
       setError("Invalid email or password");
 
