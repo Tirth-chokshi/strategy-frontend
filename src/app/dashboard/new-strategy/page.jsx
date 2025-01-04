@@ -66,6 +66,26 @@ export default function StrategyPage() {
       timeout = setTimeout(() => func.apply(this, args), wait);
     };
   };
+  const checkForDuplicates = (newEntry, currentEntries, editingId = null) => {
+    const isDuplicate = currentEntries.some(entry => {
+      // Skip checking against the entry being edited
+      if (editingId && entry.id === editingId) {
+        return false;
+      }
+
+      // Check all relevant fields for duplicates
+      const strikeMatch = entry.strikePrice === newEntry.strikePrice;
+      const symbolMatch = entry.tradingSymbol === newEntry.tradingSymbol;
+      const tokenMatch = entry.instrumentToken === newEntry.instrumentToken;
+      const optionMatch = entry.option === newEntry.option;
+
+      // Consider it a duplicate if all fields match
+      return strikeMatch && symbolMatch && tokenMatch && optionMatch;
+    });
+
+    return isDuplicate;
+  };
+
 
   // Function to fetch strike price suggestions
   const fetchStrikePriceSuggestions = async (query) => {
@@ -166,24 +186,28 @@ export default function StrategyPage() {
   const handleDetailedSubmit = (e) => {
     e.preventDefault();
 
-    const isDuplicate = submittedEntries.some(
-      (entry) =>
-        entry.strikePrice === detailedFormData.strikePrice &&
-        entry.tradingSymbol === detailedFormData.tradingSymbol &&
-        (isEditMode ? entry.id !== editingId : true)
-    );
+    // Create the new entry object
+    const newEntryData = {
+      strikePrice: detailedFormData.strikePrice,
+      tradingSymbol: detailedFormData.tradingSymbol,
+      instrumentToken: detailedFormData.instrumentToken,
+      option: detailedFormData.option,
+    };
+
+    // Check for duplicates
+    const isDuplicate = checkForDuplicates(newEntryData, submittedEntries, editingId);
 
     if (isDuplicate) {
       toast({
-        title: "Validation Error",
-        description:
-          "This combination of strike price and trading symbol already exists",
+        title: "Duplicate Entry",
+        description: "This strategy detail already exists. Each strategy detail must be unique.",
         variant: "destructive",
       });
       return;
     }
 
     if (isEditMode) {
+      // Update existing entry
       setSubmittedEntries(
         submittedEntries.map((entry) =>
           entry.id === editingId ? { ...entry, ...detailedFormData } : entry
@@ -192,6 +216,7 @@ export default function StrategyPage() {
       setIsEditMode(false);
       setEditingId(null);
     } else {
+      // Add new entry
       const newEntry = {
         ...detailedFormData,
         id: Date.now(),
@@ -199,6 +224,7 @@ export default function StrategyPage() {
       setSubmittedEntries([...submittedEntries, newEntry]);
     }
 
+    // Reset form
     setDetailedFormData({
       strikePrice: "",
       tradingSymbol: "",
