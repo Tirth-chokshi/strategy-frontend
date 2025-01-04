@@ -23,6 +23,7 @@ export default function ForgotPasswordDialog({
   const [email, setEmail] = useState(defaultEmail);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const apiurl = process.env.NEXT_PUBLIC_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,7 +32,7 @@ export default function ForgotPasswordDialog({
 
     try {
       // Call your password reset API
-      const response = await fetch('http://localhost:8000/users/forgot', {
+      const response = await fetch(`${apiurl}/users/forgot`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

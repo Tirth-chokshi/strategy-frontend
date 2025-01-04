@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const StrategiesPage = () => {
+  const apiurl = process.env.NEXT_PUBLIC_API_URL;
   const { toast } = useToast();
   const [strategies, setStrategies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,7 +33,7 @@ const StrategiesPage = () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/strategies/get/user", {
+      const response = await fetch(`${apiurl}/strategies/get/user`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -59,7 +60,7 @@ const StrategiesPage = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8000/strategies/${strategyId}/toggle-status`,
+        `${apiurl}/strategies/${strategyId}/toggle-status`,
         {
           method: "PATCH",
           headers: {
@@ -97,7 +98,7 @@ const StrategiesPage = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8000/strategies/delete/${selectedStrategyId}`,
+        `${apiurl}/strategies/delete/${selectedStrategyId}`,
         {
           method: "DELETE",
           headers: {

@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:8000/users'
+const apiurl = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = `${apiurl}/users`
 
 export const authService = {
   async register(userData) {

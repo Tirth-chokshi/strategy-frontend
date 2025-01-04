@@ -12,6 +12,7 @@ import { User, Mail, Lock } from 'lucide-react';
 
 export default function SignupPage() {
   const router = useRouter();
+  const apiurl = process.env.NEXT_PUBLIC_API_URL;
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -35,7 +36,7 @@ export default function SignupPage() {
     try {
       // Here you would integrate with your authentication service
       // Example with fetch:
-      const response = await fetch(`http://localhost:8000/users/register`, {
+      const response = await fetch(`${apiurl}/users/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
