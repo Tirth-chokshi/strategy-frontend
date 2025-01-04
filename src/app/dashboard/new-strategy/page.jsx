@@ -8,6 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -25,6 +32,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
 export default function StrategyPage() {
+  console.log('StrategyPage component rendering'); // Debug log
+
   const router = useRouter();
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -32,6 +41,7 @@ export default function StrategyPage() {
   const [editingId, setEditingId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
+  const [availableOptions, setAvailableOptions] = useState([]);
   const [formData, setFormData] = useState({
     strategyName: '',
     status: true,
@@ -43,22 +53,24 @@ export default function StrategyPage() {
     option: '',
   });
   const [submittedEntries, setSubmittedEntries] = useState([]);
+  const [strikePrices] = useState(['21000', '21500', '22000', '22200', '22500', '23000']);
 
   // Function to fetch option details
-  const fetchOptionDetails = async (strikePrice, tradingSymbol) => {
-    if (!strikePrice || !tradingSymbol) return;
+  const fetchOptionDetails = async (strikePrice) => {
+    console.log('Fetching options for strike price:', strikePrice); // Debug log
+    if (!strikePrice) return;
     
     try {
       setIsFetching(true);
       const token = localStorage.getItem('token');
       
-      const response = await fetch('http://localhost:8000/options/details', {
+      const response = await fetch(`http://localhost:8000/options/details`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ strikePrice, tradingSymbol })
+        body: JSON.stringify({ strikePrice })
       });
 
       if (!response.ok) {
@@ -66,13 +78,10 @@ export default function StrategyPage() {
       }
 
       const data = await response.json();
-      
-      setDetailedFormData(prev => ({
-        ...prev,
-        instrumentToken: data.options[0].instrumentToken.toString(),
-        option: data.options[0].option
-      }));
+      console.log('Received options:', data.options); // Debug log
+      setAvailableOptions(data.options);
     } catch (error) {
+      console.error('Error fetching options:', error); // Debug log
       toast({
         title: "Error",
         description: "Failed to fetch option details",
@@ -83,19 +92,51 @@ export default function StrategyPage() {
     }
   };
 
-  // Effect to trigger fetch when strike price and trading symbol are entered
-  useEffect(() => {
-    if (detailedFormData.strikePrice && detailedFormData.tradingSymbol) {
-      const debounceTimer = setTimeout(() => {
-        fetchOptionDetails(detailedFormData.strikePrice, detailedFormData.tradingSymbol);
-      }, 500); // Debounce for 500ms
+  const handleStrikePriceChange = (value) => {
+    console.log('Strike price changed to:', value); // Debug log
+    setDetailedFormData(prev => ({
+      ...prev,
+      strikePrice: value,
+      tradingSymbol: '',
+      instrumentToken: '',
+      option: ''
+    }));
+    fetchOptionDetails(value);
+  };
 
-      return () => clearTimeout(debounceTimer);
+  const handleTradingSymbolChange = (value) => {
+    console.log('Trading symbol changed to:', value); // Debug log
+    const selectedOption = availableOptions.find(opt => opt.tradingSymbol === value);
+    if (selectedOption) {
+      setDetailedFormData(prev => ({
+        ...prev,
+        tradingSymbol: selectedOption.tradingSymbol,
+        instrumentToken: selectedOption.instrumentToken.toString(),
+        option: selectedOption.option
+      }));
     }
-  }, [detailedFormData.strikePrice, detailedFormData.tradingSymbol]);
+  };
 
   const handleDetailedSubmit = (e) => {
     e.preventDefault();
+    console.log('Submitting form with data:', detailedFormData); // Debug log
+    
+    // Check for duplicates
+    const isDuplicate = submittedEntries.some(entry => 
+      entry.strikePrice === detailedFormData.strikePrice && 
+      entry.tradingSymbol === detailedFormData.tradingSymbol &&
+      (isEditMode ? entry.id !== editingId : true)
+    );
+
+    if (isDuplicate) {
+      toast({
+        title: "Validation Error",
+        description: "This combination of strike price and trading symbol already exists",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (isEditMode) {
       setSubmittedEntries(submittedEntries.map(entry => 
         entry.id === editingId ? { ...entry, ...detailedFormData } : entry
@@ -118,6 +159,38 @@ export default function StrategyPage() {
     });
     setIsDialogOpen(false);
   };
+
+  const handleAddMore = () => {
+    console.log('Opening dialog for new entry'); // Debug log
+    setIsEditMode(false);
+    setDetailedFormData({
+      strikePrice: '',
+      tradingSymbol: '',
+      instrumentToken: '',
+      option: '',
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleEdit = (entry) => {
+    console.log('Editing entry:', entry); // Debug log
+    setDetailedFormData({
+      strikePrice: entry.strikePrice,
+      tradingSymbol: entry.tradingSymbol,
+      instrumentToken: entry.instrumentToken,
+      option: entry.option,
+    });
+    setIsEditMode(true);
+    setEditingId(entry.id);
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = (id) => {
+    console.log('Deleting entry:', id); // Debug log
+    setSubmittedEntries(submittedEntries.filter(entry => entry.id !== id));
+  };
+
+
 
   const handleFinalSubmit = async () => {
     try {
@@ -183,7 +256,7 @@ export default function StrategyPage() {
         description: "Strategy created successfully!",
       });
 
-      // Reset only after successful submission
+      // Reset form after successful submission
       setSubmittedEntries([]);
       setFormData({
         strategyName: '',
@@ -201,33 +274,6 @@ export default function StrategyPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleEdit = (entry) => {
-    setDetailedFormData({
-      strikePrice: entry.strikePrice,
-      tradingSymbol: entry.tradingSymbol,
-      instrumentToken: entry.instrumentToken,
-      option: entry.option,
-    });
-    setIsEditMode(true);
-    setEditingId(entry.id);
-    setIsDialogOpen(true);
-  };
-
-  const handleDelete = (id) => {
-    setSubmittedEntries(submittedEntries.filter(entry => entry.id !== id));
-  };
-
-  const handleAddMore = () => {
-    setIsEditMode(false);
-    setDetailedFormData({
-      strikePrice: '',
-      tradingSymbol: '',
-      instrumentToken: '',
-      option: '',
-    });
-    setIsDialogOpen(true);
   };
 
   return (
@@ -333,7 +379,9 @@ export default function StrategyPage() {
             )}
           </CardContent>
         </Card>
+
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          console.log('Dialog open state changed to:', open); // Debug log
           setIsDialogOpen(open);
           if (!open) {
             setIsEditMode(false);
@@ -349,22 +397,41 @@ export default function StrategyPage() {
             <form onSubmit={handleDetailedSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="strikePrice">Strike Price</Label>
-                <Input
-                  id="strikePrice"
+                <Select
                   value={detailedFormData.strikePrice}
-                  onChange={(e) => setDetailedFormData({ ...detailedFormData, strikePrice: e.target.value })}
-                  required
-                />
+                  onValueChange={handleStrikePriceChange}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Strike Price" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {strikePrices.map((price) => (
+                      <SelectItem key={price} value={price}>
+                        {price}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="tradingSymbol">Trading Symbol</Label>
-                <Input
-                  id="tradingSymbol"
+                <Select
                   value={detailedFormData.tradingSymbol}
-                  onChange={(e) => setDetailedFormData({ ...detailedFormData, tradingSymbol: e.target.value })}
-                  required
-                />
+                  onValueChange={handleTradingSymbolChange}
+                  disabled={!detailedFormData.strikePrice || isFetching}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Trading Symbol" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableOptions.map((option) => (
+                      <SelectItem key={option.tradingSymbol} value={option.tradingSymbol}>
+                        {option.tradingSymbol}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">

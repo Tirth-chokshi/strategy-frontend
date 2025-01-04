@@ -45,7 +45,7 @@ export default function SignupPage() {
         throw new Error('Signup failed');
       }
 
-      router.push('/dashboard/login'); // Redirect to login after successful signup
+      router.push('/login'); // Redirect to login after successful signup
     } catch (err) {
       setError('Failed to create account. Please try again.');
     } finally {
@@ -156,7 +156,7 @@ export default function SignupPage() {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-600">
             Already have an account?{' '}
-            <Link href="/dashboard/login" className="font-medium text-blue-600 hover:text-blue-500">
+            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
               Sign in
             </Link>
           </p>
