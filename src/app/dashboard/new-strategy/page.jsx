@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,8 +28,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function StrategyPage() {
   const router = useRouter();
@@ -42,18 +42,18 @@ export default function StrategyPage() {
   const [availableOptions, setAvailableOptions] = useState([]);
   const [strikePriceSuggestions, setStrikePriceSuggestions] = useState([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
-  const [strikeInputValue, setStrikeInputValue] = useState('');
+  const [strikeInputValue, setStrikeInputValue] = useState("");
 
   const [formData, setFormData] = useState({
-    strategyName: '',
+    strategyName: "",
     status: true,
   });
 
   const [detailedFormData, setDetailedFormData] = useState({
-    strikePrice: '',
-    tradingSymbol: '',
-    instrumentToken: '',
-    option: '',
+    strikePrice: "",
+    tradingSymbol: "",
+    instrumentToken: "",
+    option: "",
   });
 
   const [submittedEntries, setSubmittedEntries] = useState([]);
@@ -76,25 +76,28 @@ export default function StrategyPage() {
 
     try {
       setIsLoadingSuggestions(true);
-      const token = localStorage.getItem('token');
-      
-      const response = await fetch('http://localhost:8000/options/suggestions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ query })
-      });
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+        "http://localhost:8000/options/suggestions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ query }),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch suggestions');
+        throw new Error("Failed to fetch suggestions");
       }
 
       const data = await response.json();
       setStrikePriceSuggestions(data.suggestions);
     } catch (error) {
-      console.error('Error fetching suggestions:', error);
+      console.error("Error fetching suggestions:", error);
       toast({
         title: "Error",
         description: "Failed to fetch strike price suggestions",
@@ -114,28 +117,28 @@ export default function StrategyPage() {
   // Function to fetch option details
   const fetchOptionDetails = async (strikePrice) => {
     if (!strikePrice) return;
-    
+
     try {
       setIsFetching(true);
-      const token = localStorage.getItem('token');
-      
+      const token = localStorage.getItem("token");
+
       const response = await fetch(`http://localhost:8000/options/details`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ strikePrice })
+        body: JSON.stringify({ strikePrice }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch option details');
+        throw new Error("Failed to fetch option details");
       }
 
       const data = await response.json();
       setAvailableOptions(data.options);
     } catch (error) {
-      console.error('Error fetching options:', error);
+      console.error("Error fetching options:", error);
       toast({
         title: "Error",
         description: "Failed to fetch option details",
@@ -147,39 +150,45 @@ export default function StrategyPage() {
   };
 
   const handleTradingSymbolChange = (value) => {
-    const selectedOption = availableOptions.find(opt => opt.tradingSymbol === value);
+    const selectedOption = availableOptions.find(
+      (opt) => opt.tradingSymbol === value
+    );
     if (selectedOption) {
-      setDetailedFormData(prev => ({
+      setDetailedFormData((prev) => ({
         ...prev,
         tradingSymbol: selectedOption.tradingSymbol,
         instrumentToken: selectedOption.instrumentToken.toString(),
-        option: selectedOption.option
+        option: selectedOption.option,
       }));
     }
   };
 
   const handleDetailedSubmit = (e) => {
     e.preventDefault();
-    
-    const isDuplicate = submittedEntries.some(entry => 
-      entry.strikePrice === detailedFormData.strikePrice && 
-      entry.tradingSymbol === detailedFormData.tradingSymbol &&
-      (isEditMode ? entry.id !== editingId : true)
+
+    const isDuplicate = submittedEntries.some(
+      (entry) =>
+        entry.strikePrice === detailedFormData.strikePrice &&
+        entry.tradingSymbol === detailedFormData.tradingSymbol &&
+        (isEditMode ? entry.id !== editingId : true)
     );
 
     if (isDuplicate) {
       toast({
         title: "Validation Error",
-        description: "This combination of strike price and trading symbol already exists",
+        description:
+          "This combination of strike price and trading symbol already exists",
         variant: "destructive",
       });
       return;
     }
 
     if (isEditMode) {
-      setSubmittedEntries(submittedEntries.map(entry => 
-        entry.id === editingId ? { ...entry, ...detailedFormData } : entry
-      ));
+      setSubmittedEntries(
+        submittedEntries.map((entry) =>
+          entry.id === editingId ? { ...entry, ...detailedFormData } : entry
+        )
+      );
       setIsEditMode(false);
       setEditingId(null);
     } else {
@@ -189,26 +198,26 @@ export default function StrategyPage() {
       };
       setSubmittedEntries([...submittedEntries, newEntry]);
     }
-    
+
     setDetailedFormData({
-      strikePrice: '',
-      tradingSymbol: '',
-      instrumentToken: '',
-      option: '',
+      strikePrice: "",
+      tradingSymbol: "",
+      instrumentToken: "",
+      option: "",
     });
-    setStrikeInputValue('');
+    setStrikeInputValue("");
     setIsDialogOpen(false);
   };
 
   const handleAddMore = () => {
     setIsEditMode(false);
     setDetailedFormData({
-      strikePrice: '',
-      tradingSymbol: '',
-      instrumentToken: '',
-      option: '',
+      strikePrice: "",
+      tradingSymbol: "",
+      instrumentToken: "",
+      option: "",
     });
-    setStrikeInputValue('');
+    setStrikeInputValue("");
     setIsDialogOpen(true);
   };
 
@@ -226,13 +235,13 @@ export default function StrategyPage() {
   };
 
   const handleDelete = (id) => {
-    setSubmittedEntries(submittedEntries.filter(entry => entry.id !== id));
+    setSubmittedEntries(submittedEntries.filter((entry) => entry.id !== id));
   };
 
   const handleFinalSubmit = async () => {
     try {
       setIsLoading(true);
-      
+
       if (!formData.strategyName.trim()) {
         toast({
           title: "Validation Error",
@@ -254,15 +263,15 @@ export default function StrategyPage() {
       const payload = {
         strategyName: formData.strategyName.trim(),
         status: true,
-        strategyDetails: submittedEntries.map(entry => ({
+        strategyDetails: submittedEntries.map((entry) => ({
           strikePrice: Number(entry.strikePrice),
           tradingSymbol: entry.tradingSymbol.trim(),
           instrumentToken: entry.instrumentToken.trim(),
-          type: entry.option
-        }))
+          type: entry.option,
+        })),
       };
 
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
         toast({
           title: "Authentication Error",
@@ -272,22 +281,24 @@ export default function StrategyPage() {
         return;
       }
 
-      const response = await fetch('http://localhost:8000/strategies/create', {
-        method: 'POST',
+      const response = await fetch("http://localhost:8000/strategies/create", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
       }
 
       const data = await response.json();
-      
+
       toast({
         title: "Success",
         description: "Strategy created successfully!",
@@ -295,13 +306,13 @@ export default function StrategyPage() {
 
       setSubmittedEntries([]);
       setFormData({
-        strategyName: '',
+        strategyName: "",
         status: true,
       });
 
-      router.push('/dashboard/strategy-display');
+      router.push("/dashboard/strategy-display");
     } catch (error) {
-      console.error('Error submitting strategy:', error);
+      console.error("Error submitting strategy:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to create strategy",
@@ -326,7 +337,9 @@ export default function StrategyPage() {
                 <Input
                   id="strategyName"
                   value={formData.strategyName}
-                  onChange={(e) => setFormData({ ...formData, strategyName: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, strategyName: e.target.value })
+                  }
                   className="w-full"
                   required
                 />
@@ -334,11 +347,7 @@ export default function StrategyPage() {
 
               <div className="flex items-center justify-between">
                 <Label htmlFor="status">Strategy Status</Label>
-                <Switch
-                  id="status"
-                  checked={true}
-                  disabled={true}
-                />
+                <Switch id="status" checked={true} disabled={true} />
               </div>
             </div>
           </CardContent>
@@ -366,7 +375,10 @@ export default function StrategyPage() {
                 <TableBody>
                   {submittedEntries.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                      <TableCell
+                        colSpan={5}
+                        className="text-center h-24 text-muted-foreground"
+                      >
                         No data available
                       </TableCell>
                     </TableRow>
@@ -379,15 +391,15 @@ export default function StrategyPage() {
                         <TableCell>{entry.option}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="icon"
                               onClick={() => handleEdit(entry)}
                             >
                               <Pencil className="w-4 h-4" />
                             </Button>
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="icon"
                               onClick={() => handleDelete(entry.id)}
                               className="text-red-500 hover:text-red-600"
@@ -404,31 +416,43 @@ export default function StrategyPage() {
             </div>
             {submittedEntries.length > 0 && (
               <div className="flex justify-end">
-                <Button 
-                  onClick={handleFinalSubmit} 
+                <Button
+                  onClick={handleFinalSubmit}
                   className="w-32"
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Submitting...' : 'Submit All'}
+                  {isLoading ? "Saving..." : "Save"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.reload(false)}
+                  className="w-32 ml-5"
+                >
+                  Cancel
                 </Button>
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) {
-            setIsEditMode(false);
-            setEditingId(null);
-            setStrikePriceSuggestions([]);
-            setStrikeInputValue('');
-          }
-        }}>
+        <Dialog
+          open={isDialogOpen}
+          onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) {
+              setIsEditMode(false);
+              setEditingId(null);
+              setStrikePriceSuggestions([]);
+              setStrikeInputValue("");
+            }
+          }}
+        >
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>
-                {isEditMode ? 'Edit Strategy Details' : `Strategy Details: ${formData.strategyName}`}
+                {isEditMode
+                  ? "Edit Strategy Details"
+                  : `Strategy Details: ${formData.strategyName}`}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleDetailedSubmit} className="space-y-4">
@@ -459,11 +483,10 @@ export default function StrategyPage() {
                           key={price}
                           className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                           onClick={() => {
-                            
-                              setStrikeInputValue(price.toString());
-                            setDetailedFormData(prev => ({
+                            setStrikeInputValue(price.toString());
+                            setDetailedFormData((prev) => ({
                               ...prev,
-                              strikePrice: price.toString()
+                              strikePrice: price.toString(),
                             }));
                             fetchOptionDetails(price.toString());
                             setStrikePriceSuggestions([]);
@@ -489,7 +512,10 @@ export default function StrategyPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {availableOptions.map((option) => (
-                      <SelectItem key={option.tradingSymbol} value={option.tradingSymbol}>
+                      <SelectItem
+                        key={option.tradingSymbol}
+                        value={option.tradingSymbol}
+                      >
                         {option.tradingSymbol}
                       </SelectItem>
                     ))}
@@ -518,20 +544,32 @@ export default function StrategyPage() {
               </div>
 
               <div className="flex space-x-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => {
-                  setIsDialogOpen(false);
-                  setIsEditMode(false);
-                  setEditingId(null);
-                  setStrikePriceSuggestions([]);
-                  setStrikeInputValue('');
-                }}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsDialogOpen(false);
+                    setIsEditMode(false);
+                    setEditingId(null);
+                    setStrikePriceSuggestions([]);
+                    setStrikeInputValue("");
+                  }}
+                >
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   type="submit"
-                  disabled={isFetching || !detailedFormData.instrumentToken || !detailedFormData.option}
+                  disabled={
+                    isFetching ||
+                    !detailedFormData.instrumentToken ||
+                    !detailedFormData.option
+                  }
                 >
-                  {isFetching ? 'Fetching...' : isEditMode ? 'Save Changes' : 'Submit'}
+                  {isFetching
+                    ? "Fetching..."
+                    : isEditMode
+                    ? "Save Changes"
+                    : "Submit"}
                 </Button>
               </div>
             </form>

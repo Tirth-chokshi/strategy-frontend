@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import { Eye, Pencil, Trash2, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -10,35 +11,21 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
+// import AddStrikeDialog from "./AddStrikeDialog";
+import StrategyDetailsTable from "./StrategyDetailsTable";
+import StrategyHeader from "./StrategyHeader";
+import StrategyTimestamps from "./StrategyTimestamps";
+import AddStrikeDialog from "./AddStrikeDialog";
 
 const StrategyDialog = ({ strategyId, onUpdate, onDelete }) => {
   const { toast } = useToast();
@@ -292,51 +279,49 @@ const StrategyDialog = ({ strategyId, onUpdate, onDelete }) => {
                 createdAt={strategy.createdAt}
                 updatedAt={strategy.updatedAt}
               />
-<div className="flex justify-between items-center w-full">
-  <div className="flex gap-2">
-    {isEditing ? (
-      <>
-        <Button
-          onClick={() => setIsEditing(false)}
-          variant="outline"
-        >
-          Cancel
-        </Button>
-        <Button onClick={handleSave} disabled={isLoading}>
-          {isLoading ? "Saving..." : "Save Changes"}
-        </Button>
-      </>
-    ) : (
-      <>
-        <Button
-          onClick={() => setIsEditing(true)}
-          variant="outline"
-        >
-          <Pencil className="h-4 w-4 mr-2" />
-          Edit
-        </Button>
-        <Button
-          onClick={() => setDeleteDialogOpen(true)}
-          variant="destructive"
-          disabled={isLoading}
-        >
-          <Trash2 className="h-4 w-4 mr-2" />
-          Delete
-        </Button>
-      </>
-    )}
-  </div>
-  
-  <Button
-    onClick={() => setIsAddStrikeOpen(true)}
-    variant="outline"
-  >
-    <Plus className="h-4 w-4 mr-2" /> New Strike
-  </Button>
-</div>
-              
-          
-             
+              <div className="flex justify-between items-center w-full">
+                <div className="flex gap-2">
+                  {isEditing ? (
+                    <>
+                      <Button
+                        onClick={() => setIsEditing(false)}
+                        variant="outline"
+                      >
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSave} disabled={isLoading}>
+                        {isLoading ? "Saving..." : "Save Changes"}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        onClick={() => setIsEditing(true)}
+                        variant="outline"
+                      >
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={() => setDeleteDialogOpen(true)}
+                        variant="destructive"
+                        disabled={isLoading}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </Button>
+                    </>
+                  )}
+                </div>
+
+                <Button
+                  onClick={() => setIsAddStrikeOpen(true)}
+                  variant="outline"
+                >
+                  <Plus className="h-4 w-4 mr-2" /> New Strike
+                </Button>
+              </div>
+
               <StrategyDetailsTable
                 details={strategy.strategyDetails}
                 isEditing={isEditing}
@@ -348,9 +333,7 @@ const StrategyDialog = ({ strategyId, onUpdate, onDelete }) => {
                 }}
               />
 
-              <DialogFooter>
-               
-              </DialogFooter>
+              <DialogFooter></DialogFooter>
             </>
           ) : null}
         </DialogContent>
@@ -384,281 +367,3 @@ const StrategyDialog = ({ strategyId, onUpdate, onDelete }) => {
 };
 
 export default StrategyDialog;
-
-// Strategy Header Component
-const StrategyHeader = ({
-  strategy,
-  isEditing,
-  handleInputChange,
-  handleStatusToggle,
-}) => (
-  <DialogHeader>
-    <DialogTitle className="flex justify-between items-center">
-      {isEditing ? (
-        <Input
-          name="strategyName"
-          value={strategy.strategyName}
-          onChange={handleInputChange}
-          className="text-2xl font-bold"
-        />
-      ) : (
-        <span className="text-2xl font-bold">{strategy.strategyName}</span>
-      )}
-      <div className="flex items-center gap-2">
-        <Switch
-          checked={strategy.status}
-          onCheckedChange={handleStatusToggle}
-          disabled={!isEditing}
-        />
-        <Badge
-          variant={strategy.status ? "success" : "secondary"}
-          className={`${
-            strategy.status ? "bg-green-500" : "bg-gray-500"
-          } text-white`}
-        >
-          {strategy.status ? "Active" : "Inactive"}
-        </Badge>
-      </div>
-    </DialogTitle>
-  </DialogHeader>
-);
-
-// Strategy Timestamps Component
-const StrategyTimestamps = ({ createdAt, updatedAt }) => (
-  <div className="space-y-4">
-    <div className="text-sm">
-      <span className="font-bold">Created At</span>:{" "}
-      {new Date(createdAt).toLocaleString()}
-    </div>
-    <div className="text-sm">
-      <span className="font-bold">Last Updated</span>:{" "}
-      {new Date(updatedAt).toLocaleString()}
-    </div>
-  </div>
-);
-
-// Strategy Details Table Component
-const StrategyDetailsTable = ({
-  details,
-  isEditing,
-  handleInputChange,
-  handleTypeChange,
-  handleDeleteDetail,
-}) => (
-  <Table>
-    <TableHeader>
-      <TableRow>
-        <TableHead>Strike Price</TableHead>
-        <TableHead>Trading Symbol</TableHead>
-        <TableHead>Instrument Token</TableHead>
-        <TableHead>Type</TableHead>
-        <TableHead>Created At</TableHead>
-        <TableHead>Updated At</TableHead>
-        {isEditing && <TableHead>Actions</TableHead>}
-      </TableRow>
-    </TableHeader>
-    <TableBody>
-      {details.map((detail, index) => (
-        <TableRow key={detail._id}>
-          <TableCell>
-            {isEditing ? (
-              <Input
-                name="strikePrice"
-                value={detail.strikePrice}
-                onChange={(e) => handleInputChange(e, index)}
-                type="number"
-              />
-            ) : (
-              detail.strikePrice
-            )}
-          </TableCell>
-          <TableCell>
-            {isEditing ? (
-              <Input
-                name="tradingSymbol"
-                value={detail.tradingSymbol}
-                onChange={(e) => handleInputChange(e, index)}
-              />
-            ) : (
-              detail.tradingSymbol
-            )}
-          </TableCell>
-          <TableCell>
-            {isEditing ? (
-              <Input
-                name="instrumentToken"
-                value={detail.instrumentToken}
-                onChange={(e) => handleInputChange(e, index)}
-              />
-            ) : (
-              detail.instrumentToken
-            )}
-          </TableCell>
-          <TableCell>
-            {isEditing ? (
-              <Select
-                value={detail.type}
-                onValueChange={(value) => handleTypeChange(value, index)}
-              >
-                <SelectTrigger className="w-24">
-                  <SelectValue>{detail.type}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CE">CE</SelectItem>
-                  <SelectItem value="PE">PE</SelectItem>
-                  <SelectItem value="FUTURES">FUTURES</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <Badge
-                className={`
-                ${
-                  detail.type === "CE"
-                    ? "bg-blue-500"
-                    : detail.type === "PE"
-                    ? "bg-purple-500"
-                    : "bg-orange-500"
-                } text-white`}
-              >
-                {detail.type}
-              </Badge>
-            )}
-          </TableCell>
-          <TableCell>{new Date(detail.createdAt).toLocaleString()}</TableCell>
-          <TableCell>{new Date(detail.updatedAt).toLocaleString()}</TableCell>
-          {isEditing && (
-            <TableCell>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => handleDeleteDetail(detail._id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </TableCell>
-          )}
-        </TableRow>
-      ))}
-    </TableBody>
-  </Table>
-);
-
-// Delete Confirmation Dialog Component
-const DeleteConfirmationDialog = ({
-  isOpen,
-  onClose,
-  onConfirm,
-  isLoading,
-  title,
-  description,
-}) => (
-  <AlertDialog open={isOpen} onOpenChange={onClose}>
-    <AlertDialogContent>
-      <AlertDialogHeader>
-        <AlertDialogTitle>{title}</AlertDialogTitle>
-        <AlertDialogDescription>{description}</AlertDialogDescription>
-      </AlertDialogHeader>
-      <AlertDialogFooter>
-        <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
-        <AlertDialogAction
-          onClick={onConfirm}
-          disabled={isLoading}
-          className="bg-red-500 hover:bg-red-600"
-        >
-          {isLoading ? "Deleting..." : "Delete"}
-        </AlertDialogAction>
-      </AlertDialogFooter>
-    </AlertDialogContent>
-  </AlertDialog>
-);
-
-const AddStrikeDialog = ({ isOpen, onClose, onSubmit, isLoading }) => {
-  const [newStrike, setNewStrike] = useState({
-    strikePrice: "",
-    tradingSymbol: "",
-    instrumentToken: "",
-    type: "",
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(newStrike);
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Add New Strike</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="strikePrice">Strike Price</Label>
-            <Input
-              id="strikePrice"
-              type="number"
-              value={newStrike.strikePrice}
-              onChange={(e) =>
-                setNewStrike({ ...newStrike, strikePrice: e.target.value })
-              }
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="tradingSymbol">Trading Symbol</Label>
-            <Input
-              id="tradingSymbol"
-              value={newStrike.tradingSymbol}
-              onChange={(e) =>
-                setNewStrike({ ...newStrike, tradingSymbol: e.target.value })
-              }
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="instrumentToken">Instrument Token</Label>
-            <Input
-              id="instrumentToken"
-              value={newStrike.instrumentToken}
-              onChange={(e) =>
-                setNewStrike({ ...newStrike, instrumentToken: e.target.value })
-              }
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="type">Type</Label>
-            <Select
-              value={newStrike.type}
-              onValueChange={(value) =>
-                setNewStrike({ ...newStrike, type: value })
-              }
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select option type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="CE">CE</SelectItem>
-                <SelectItem value="PE">PE</SelectItem>
-                <SelectItem value="FUTURES">FUTURES</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Adding..." : "Add Strike"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-};
