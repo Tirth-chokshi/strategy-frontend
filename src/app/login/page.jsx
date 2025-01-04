@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Lock, Mail } from "lucide-react";
 import ForgotPasswordDialog from "./forgot-password-dialog";
+import { authService } from "@/services/authService";
 
 
 export default function LoginPage() {
@@ -35,26 +36,26 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:8000/users/login`, {
+      // const response = await fetch(`http://localhost:8000/users/login`, {
 
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify(formData),
 
-      });
+      // });
 
-      const data = await response.json();
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-        console.log(`Token stored successfully: ${data.token}`);
-      } else {
-        console.log("No token received");
-      }
-      if (!response.ok) {
-        throw new Error("Login failed");
-      }
+      // const data = await response.json();
+      // if (data.token) {
+      //   localStorage.setItem("token", data.token);
+      //   console.log(`Token stored successfully: ${data.token}`);
+      // } else {
+      //   console.log("No token received");
+      // }
+      // if (!response.ok) {
+      //   throw new Error("Login failed");
+      // }
 
-
+      await authService.login(formData);
       router.push("/dashboard/strategy-display");
     } catch (err) {
       setError("Invalid email or password");
