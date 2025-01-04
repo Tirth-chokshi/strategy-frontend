@@ -31,7 +31,7 @@ export default function DashboardLayout({ children }) {
                 <Plus size={20} />
                 <span>New</span>
               </button>
-              <button className="flex items-center gap-2 text-white px-4 py-2 rounded-lg hover:bg-white/10 transition-all duration-300">
+              <button className="flex items-center gap-2 text-white px-4 py-2 rounded-lg hover:bg-white/10 transition-all duration-300" onClick={() => window.location.href = '/login'}>
                 <LogOut size={20} />
                 <span>Logout</span>
               </button>
