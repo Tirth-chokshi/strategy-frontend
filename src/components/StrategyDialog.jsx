@@ -292,16 +292,51 @@ const StrategyDialog = ({ strategyId, onUpdate, onDelete }) => {
                 createdAt={strategy.createdAt}
                 updatedAt={strategy.updatedAt}
               />
-
-              <div className="flex justify-end mb-4">
-                <Button
-                  onClick={() => setIsAddStrikeOpen(true)}
-                  className="flex items-center gap-2"
-                  variant="outline"
-                >
-                  <Plus className="h-4 w-4" /> Add New Strike
-                </Button>
-              </div>
+<div className="flex justify-between items-center w-full">
+  <div className="flex gap-2">
+    {isEditing ? (
+      <>
+        <Button
+          onClick={() => setIsEditing(false)}
+          variant="outline"
+        >
+          Cancel
+        </Button>
+        <Button onClick={handleSave} disabled={isLoading}>
+          {isLoading ? "Saving..." : "Save Changes"}
+        </Button>
+      </>
+    ) : (
+      <>
+        <Button
+          onClick={() => setIsEditing(true)}
+          variant="outline"
+        >
+          <Pencil className="h-4 w-4 mr-2" />
+          Edit
+        </Button>
+        <Button
+          onClick={() => setDeleteDialogOpen(true)}
+          variant="destructive"
+          disabled={isLoading}
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          Delete
+        </Button>
+      </>
+    )}
+  </div>
+  
+  <Button
+    onClick={() => setIsAddStrikeOpen(true)}
+    variant="outline"
+  >
+    <Plus className="h-4 w-4 mr-2" /> New Strike
+  </Button>
+</div>
+              
+          
+             
               <StrategyDetailsTable
                 details={strategy.strategyDetails}
                 isEditing={isEditing}
@@ -314,37 +349,7 @@ const StrategyDialog = ({ strategyId, onUpdate, onDelete }) => {
               />
 
               <DialogFooter>
-                {isEditing ? (
-                  <>
-                    <Button
-                      onClick={() => setIsEditing(false)}
-                      variant="outline"
-                    >
-                      Cancel
-                    </Button>
-                    <Button onClick={handleSave} disabled={isLoading}>
-                      {isLoading ? "Saving..." : "Save Changes"}
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      onClick={() => setIsEditing(true)}
-                      variant="outline"
-                    >
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Edit
-                    </Button>
-                    <Button
-                      onClick={() => setDeleteDialogOpen(true)}
-                      variant="destructive"
-                      disabled={isLoading}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </Button>
-                  </>
-                )}
+               
               </DialogFooter>
             </>
           ) : null}
