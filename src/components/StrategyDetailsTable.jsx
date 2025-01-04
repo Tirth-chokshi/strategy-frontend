@@ -69,7 +69,7 @@ const StrategyDetailsTable = ({ details, isEditing, handleInputChange, handleTyp
                   <SelectContent>
                     <SelectItem value="CE">CE</SelectItem>
                     <SelectItem value="PE">PE</SelectItem>
-                    <SelectItem value="FUTURES">FUTURES</SelectItem>
+                    
                   </SelectContent>
                 </Select>
               ) : (

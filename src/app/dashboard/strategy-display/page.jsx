@@ -1,10 +1,10 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Eye } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, useEffect } from "react";
+import { Plus, Trash2, Eye } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import StrategyDialog from '@/components/StrategyDialog';
+import StrategyDialog from "@/components/StrategyDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +22,7 @@ const StrategiesPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedStrategyId, setSelectedStrategyId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState(""); // State for search query
 
   useEffect(() => {
     fetchStrategies();
@@ -30,15 +31,15 @@ const StrategiesPage = () => {
   const fetchStrategies = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/strategies/get/user', {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:8000/strategies/get/user", {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch strategies');
+        throw new Error("Failed to fetch strategies");
       }
 
       const result = await response.json();
@@ -56,27 +57,32 @@ const StrategiesPage = () => {
 
   const handleToggleStatus = async (strategyId, currentStatus) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/strategies/${strategyId}/toggle-status`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:8000/strategies/${strategyId}/toggle-status`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to toggle strategy status');
+        throw new Error("Failed to toggle strategy status");
       }
 
-      setStrategies(prevStrategies =>
-        prevStrategies.map(strategy =>
-          strategy._id === strategyId ? { ...strategy, status: !currentStatus } : strategy
+      setStrategies((prevStrategies) =>
+        prevStrategies.map((strategy) =>
+          strategy._id === strategyId
+            ? { ...strategy, status: !currentStatus }
+            : strategy
         )
       );
 
       toast({
         title: "Success",
-        description: `Strategy ${currentStatus ? 'disabled' : 'enabled'} successfully`,
+        description: `Strategy ${currentStatus ? "disabled" : "enabled"} successfully`,
       });
     } catch (err) {
       toast({
@@ -89,20 +95,23 @@ const StrategiesPage = () => {
 
   const handleDelete = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/strategies/delete/${selectedStrategyId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:8000/strategies/delete/${selectedStrategyId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to delete strategy');
+        throw new Error("Failed to delete strategy");
       }
 
-      setStrategies(prevStrategies =>
-        prevStrategies.filter(strategy => strategy._id !== selectedStrategyId)
+      setStrategies((prevStrategies) =>
+        prevStrategies.filter((strategy) => strategy._id !== selectedStrategyId)
       );
 
       toast({
@@ -122,30 +131,48 @@ const StrategiesPage = () => {
   };
 
   const handleStrategyUpdate = (updatedStrategy) => {
-    setStrategies(prevStrategies =>
-      prevStrategies.map(strategy =>
+    setStrategies((prevStrategies) =>
+      prevStrategies.map((strategy) =>
         strategy._id === updatedStrategy._id ? updatedStrategy : strategy
       )
     );
   };
 
   const handleStrategyDelete = (deletedStrategyId) => {
-    setStrategies(prevStrategies =>
-      prevStrategies.filter(strategy => strategy._id !== deletedStrategyId)
+    setStrategies((prevStrategies) =>
+      prevStrategies.filter((strategy) => strategy._id !== deletedStrategyId)
     );
   };
+
+  // Filter strategies based on the search query
+  const filteredStrategies = strategies.filter((strategy) =>
+    strategy.strategyName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen p-8 bg-gray-50">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow">
           <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold">Strategies</h1>
-              <Button onClick={() => window.location.href = '/dashboard/new-strategy'} className="flex items-center gap-2">
-                <Plus className="w-4 h-4" /> New Strategy
-              </Button>
-            </div>
+          <div className="flex justify-between items-center mb-6">
+  <h1 className="text-2xl font-bold">Strategies</h1>
+  <div className="flex items-center gap-4">
+    <input
+      type="text"
+      className="p-2 border rounded-md w-64" // Adjust width as needed
+      placeholder="Search..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+    />
+    <Button
+      onClick={() => (window.location.href = "/dashboard/new-strategy")}
+      className="flex items-center gap-2"
+    >
+      <Plus className="w-4 h-4" /> New Strategy
+    </Button>
+  </div>
+</div>
+
 
             {isLoading ? (
               <div className="text-center py-4">Loading strategies...</div>
@@ -162,19 +189,29 @@ const StrategiesPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {strategies.map((strategy) => (
+                    {filteredStrategies.map((strategy) => (
                       <tr key={strategy._id} className="border-b hover:bg-gray-50">
                         <td className="py-3 px-4">{strategy.strategyName}</td>
-                        <td className="py-3 px-4">{new Date(strategy.createdAt).toLocaleString()}</td>
-                        <td className="py-3 px-4">{new Date(strategy.updatedAt).toLocaleString()}</td>
+                        <td className="py-3 px-4">
+                          {new Date(strategy.createdAt).toLocaleString()}
+                        </td>
+                        <td className="py-3 px-4">
+                          {new Date(strategy.updatedAt).toLocaleString()}
+                        </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
                             <Switch
                               checked={strategy.status}
-                              onCheckedChange={() => handleToggleStatus(strategy._id, strategy.status)}
+                              onCheckedChange={() =>
+                                handleToggleStatus(strategy._id, strategy.status)
+                              }
                             />
-                            <span className={strategy.status ? "text-green-600" : "text-gray-500"}>
-                              {strategy.status ? 'Active' : 'Inactive'}
+                            <span
+                              className={
+                                strategy.status ? "text-green-600" : "text-gray-500"
+                              }
+                            >
+                              {strategy.status ? "Active" : "Inactive"}
                             </span>
                           </div>
                         </td>
@@ -217,7 +254,10 @@ const StrategiesPage = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-500 hover:bg-red-600"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
