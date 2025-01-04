@@ -1,25 +1,43 @@
-
-"use client"
-import React, { useState } from 'react';
+"use client";
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation'; // Import useRouter for navigation
 import Link from 'next/link';
 import Image from 'next/image';
 import { Home, Eye, LogOut, Plus, Mail, Phone, MapPin, Menu, X } from 'lucide-react';
 
 const HomePage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
+  const router = useRouter(); // Initialize useRouter
+
+  // Function to check if the user is authenticated
+  const checkAuthentication = () => {
+    // Replace this with your actual authentication logic
+    const isAuthenticated = false; // Example: change to true if authenticated
+    return isAuthenticated;
+  };
+
+  // useEffect to handle redirection based on authentication status
+  useEffect(() => {
+    if (checkAuthentication()) {
+      // Redirect to dashboard if authenticated
+      router.push('/dashboard/strategy-display');
+    } else {
+      // Redirect to login if unauthenticated
+      router.push('/login');
+    }
+  }, []); // Empty dependency array ensures this runs once on component mount
 
   return (
     <div className="flex flex-col min-h-screen">
       {/* Mobile-optimized Navbar */}
-      <nav className="bg-gradient-to-r from-blue-900 to-black p-4 sticky top-0 z-50 shadow-xl">
+      {/* <nav className="bg-gradient-to-r from-blue-900 to-black p-4 sticky top-0 z-50 shadow-xl">
         <div className="container mx-auto">
           <div className="flex justify-between items-center">
             <h1 className="text-white text-2xl sm:text-3xl font-bold tracking-wider cursor-pointer" onClick={() => window.location.href = '/'}>
               Shivansh
             </h1>
             
-            {/* Mobile Menu Button */}
+            
             <button 
               className="md:hidden text-white p-2"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -27,7 +45,7 @@ const HomePage = () => {
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
 
-            {/* Desktop Navigation */}
+            
             <div className="hidden md:flex gap-6">
               <button className="flex items-center gap-2 text-white px-4 py-2 rounded-lg hover:bg-white/10 transition-all duration-300" onClick={() => window.location.href = '/dashboard/strategy-display'}>
                 <Eye size={20} />
@@ -44,7 +62,7 @@ const HomePage = () => {
             </div>
           </div>
 
-          {/* Mobile Navigation Menu */}
+      
           <div className={`md:hidden ${isMenuOpen ? 'block' : 'hidden'} mt-4`}>
             <div className="flex flex-col gap-2">
               <button className="flex items-center gap-2 text-white px-4 py-3 rounded-lg hover:bg-white/10 transition-all duration-300 w-full" onClick={() => window.location.href = '/dashboard/strategy-display'}>
@@ -62,7 +80,7 @@ const HomePage = () => {
             </div>
           </div>
         </div>
-      </nav>
+      </nav> */}
       {/* Main Content */}
       <main className="flex-grow">
         {/* Responsive Hero Section */}
@@ -78,12 +96,6 @@ const HomePage = () => {
           
           {/* Responsive Hero Content */}
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center px-4 text-center">
-            {/* <h2 className="text-white text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 max-w-4xl leading-tight">
-              Create Winning Trading Strategies
-            </h2>
-            <p className="text-white/90 text-lg sm:text-xl md:text-2xl mb-6 sm:mb-8 max-w-2xl px-4">
-              Design, backtest, and implement professional trading strategies with our advanced platform
-            </p> */}
             <Link href="/dashboard/new-strategy">
               <button className="bg-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:bg-blue-700 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 flex items-center gap-2">
                 <Plus size={20} className="sm:size-18" />
