@@ -13,6 +13,7 @@ export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const apiurl = process.env.NEXT_PUBLIC_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,7 +29,7 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${apiurl}/admin/reset`, {
+      const response = await fetch(`${apiurl}/users/reset`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
