@@ -83,7 +83,9 @@ const StrategiesPage = () => {
 
       toast({
         title: "Success",
-        description: `Strategy ${currentStatus ? "disabled" : "enabled"} successfully`,
+        description: `Strategy ${
+          currentStatus ? "disabled" : "enabled"
+        } successfully`,
       });
     } catch (err) {
       toast({
@@ -155,25 +157,26 @@ const StrategiesPage = () => {
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow">
           <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-  <h1 className="text-2xl font-bold">Strategies</h1>
-  <div className="flex items-center gap-4">
-    <input
-      type="text"
-      className="p-2 border rounded-md w-64" // Adjust width as needed
-      placeholder="Search..."
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-    />
-    <Button
-      onClick={() => (window.location.href = "/dashboard/new-strategy")}
-      className="flex items-center gap-2"
-    >
-      <Plus className="w-4 h-4" /> New Strategy
-    </Button>
-  </div>
-</div>
-
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold">Strategies</h1>
+              <div className="flex items-center gap-4">
+                <input
+                  type="text"
+                  className="p-2 border rounded-md w-64" // Adjust width as needed
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Button
+                  onClick={() =>
+                    (window.location.href = "/dashboard/new-strategy")
+                  }
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" /> New Strategy
+                </Button>
+              </div>
+            </div>
 
             {isLoading ? (
               <div className="text-center py-4">Loading strategies...</div>
@@ -191,7 +194,10 @@ const StrategiesPage = () => {
                   </thead>
                   <tbody>
                     {filteredStrategies.map((strategy) => (
-                      <tr key={strategy._id} className="border-b hover:bg-gray-50">
+                      <tr
+                        key={strategy._id}
+                        className="border-b hover:bg-gray-50"
+                      >
                         <td className="py-3 px-4">{strategy.strategyName}</td>
                         <td className="py-3 px-4">
                           {new Date(strategy.createdAt).toLocaleString()}
@@ -204,12 +210,17 @@ const StrategiesPage = () => {
                             <Switch
                               checked={strategy.status}
                               onCheckedChange={() =>
-                                handleToggleStatus(strategy._id, strategy.status)
+                                handleToggleStatus(
+                                  strategy._id,
+                                  strategy.status
+                                )
                               }
                             />
                             <span
                               className={
-                                strategy.status ? "text-green-600" : "text-gray-500"
+                                strategy.status
+                                  ? "text-green-600"
+                                  : "text-gray-500"
                               }
                             >
                               {strategy.status ? "Active" : "Inactive"}
@@ -250,7 +261,8 @@ const StrategiesPage = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Strategy</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this strategy? This action cannot be undone.
+              Are you sure you want to delete this strategy? This action cannot
+              be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
