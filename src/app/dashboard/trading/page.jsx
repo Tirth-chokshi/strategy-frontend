@@ -10,9 +10,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { PieChart, Pie, Cell, Tooltip } from "recharts";
-import { PrinterCheckIcon } from "lucide-react";
-const apiurl = process.env.NEXT_PUBLIC_API_URL;
+import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
+import { ChartCandlestick } from "lucide-react";
 
 const TradingDashboard = () => {
   const [livePrice, setLivePrice] = React.useState(null);
@@ -36,8 +35,8 @@ const TradingDashboard = () => {
   ]);
 
   const pieData = [
-    { name: "Profit", value: 60, color: "#22c55e" },
-    { name: "Loss", value: 40, color: "#ef4444" },
+    { name: "Profit", value: 60, color: "#16a34a" },
+    { name: "Loss", value: 40, color: "#dc2626" },
   ];
 
   React.useEffect(() => {
@@ -57,12 +56,22 @@ const TradingDashboard = () => {
       eventSource.close();
     };
   }, []);
-
+  const apiurl = process.env.NEXT_PUBLIC_API_URL;
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-2 border rounded shadow">
-          <p className="text-sm">{`${payload[0].name}: ${payload[0].value}%`}</p>
+        <div className="bg-white p-3 border rounded shadow">
+          <p className="text-base font-medium">
+            {`${payload[0].name}`}
+            <span
+              className={
+                payload[0].name === "Profit" ? "text-green-600" : "text-red-600"
+              }
+            >
+              ({payload[0].name === "Profit" ? "+" : "-"}
+              {payload[0].value}%)
+            </span>
+          </p>
         </div>
       );
     }
@@ -70,65 +79,71 @@ const TradingDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      {/* Main Content */}
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-12">
-        {/* Market Data Card */}
-        <Card className="lg:col-span-5">
-          <CardHeader>
-            <CardTitle>Market Data</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div
-                className={`text-2xl font-bold ${
-                  livePrice === null
-                    ? "text-gray-500"
-                    : Math.random() > 0.5
-                    ? "text-red-500"
-                    : "text-green-500"
-                }`}
-              >
-                {livePrice ? livePrice.toFixed(2) : "-----"}
+    <div className="min-h-screen bg-background p-4">
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-12 mb-8">
+        <Card className="lg:col-span-4">
+          <CardContent className="py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold">NIFTY</h3>
+                <div
+                  className={`text-xl font-bold ${
+                    livePrice === null
+                      ? "text-gray-500"
+                      : Math.random() > 0.5
+                      ? "text-red-600"
+                      : "text-green-600"
+                  }`}
+                >
+                  {livePrice ? livePrice.toFixed(2) : "-----"}
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Put Strike</p>
-                  <p className="text-lg font-medium">18,200</p>
+                  <span className="text-sm text-muted-foreground mr-1">
+                    Put:
+                  </span>
+                  <span className="text-sm font-medium">18,200</span>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Call Strike</p>
-                  <p className="text-lg font-medium">18,300</p>
+                  <span className="text-sm text-muted-foreground mr-1">
+                    Call:
+                  </span>
+                  <span className="text-sm font-medium">18,300</span>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
-        <MetricCard
-          title="Total Trades"
-          icon={<PrinterCheckIcon className="text-2xl" />}
-          metrics={[{ value: 5, label: "Trades" }]}
-          className="lg:col-span-3"
-        />
 
-        {/* Trade Statistics */}
         <Card className="lg:col-span-4">
-          <CardHeader>
-            <CardTitle>Trade Statistics</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="w-full h-[250px] flex items-center justify-center">
-              <PieChart width={250} height={250}>
+          <CardContent className="py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold">Trades</h3>
+                <div className="text-xl font-bold">5</div>
+              </div>
+              <ChartCandlestick className="h-8 w-8 text-gray-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-4">
+          <CardContent className="py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className="flex gap-4">
+                  <span className="text-green-600">●</span> Profit
+                  <span className="text-red-600">●</span> Loss
+                </div>
+              </div>
+              <PieChart width={100} height={80}>
                 <Pie
                   data={pieData}
                   cx="50%"
                   cy="50%"
                   innerRadius={0}
-                  outerRadius={80}
-                  dataKey="value"
-                  label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
-                  }
+                  outerRadius={30}
                 >
                   {pieData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
@@ -139,82 +154,62 @@ const TradingDashboard = () => {
             </div>
           </CardContent>
         </Card>
-
-        {/* Rest of the component remains the same */}
       </div>
 
-      {/* Logs Section */}
-      <div className="grid gap-6 mt-6 grid-cols-1 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Logs</CardTitle>
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+        <Card className="shadow-lg">
+          <CardHeader className="py-6">
+            <CardTitle className="text-2xl font-bold">Logs</CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[200px] w-full rounded-md border p-4 bg-muted">
-              <div className="font-mono text-sm">
-                <div className="text-muted-foreground">
-                  {">"} Trade executed: PUT 18500 @ 150
-                </div>
-                <div className="text-muted-foreground">
-                  {">"} Position closed: CALL 18600 @ 140
-                </div>
-                <div className="text-green-500">{">"} Profit realized: +50</div>
-                <div className="text-red-500">{">"} Loss recorded: -40</div>
-                <div className="text-muted-foreground">
-                  {">"} Trade executed: PUT 18500 @ 150
-                </div>
-                <div className="text-muted-foreground">
-                  {">"} Position closed: CALL 18600 @ 140
-                </div>
-                <div className="text-green-500">{">"} Profit realized: +50</div>
-                <div className="text-red-500">{">"} Loss recorded: -40</div>
-                <div className="text-muted-foreground">
-                  {">"} Trade executed: PUT 18500 @ 150
-                </div>
-                <div className="text-muted-foreground">
-                  {">"} Position closed: CALL 18600 @ 140
-                </div>
-                <div className="text-green-500">{">"} Profit realized: +50</div>
-                <div className="text-red-500">{">"} Loss recorded: -40</div>
-                <div className="text-muted-foreground">
-                  {">"} Trade executed: PUT 18500 @ 150
-                </div>
-                <div className="text-muted-foreground">
-                  {">"} Position closed: CALL 18600 @ 140
-                </div>
-                <div className="text-green-500">{">"} Profit realized: +50</div>
-                <div className="text-red-500">{">"} Loss recorded: -40</div>
+            <ScrollArea className="h-[400px] w-full rounded-md border p-4 bg-black">
+              <div className="font-mono text-base text-white space-y-3">
+                <div>{">"} Trade executed: PUT 18500 @ 150</div>
+                <div className="text-green-400">{">"} Profit realized: +50</div>
+                <div className="text-red-400">{">"} Loss recorded: -40</div>
+                <div>{">"} Trade executed: PUT 18500 @ 150</div>
+                <div className="text-green-400">{">"} Profit realized: +50</div>
+                <div className="text-red-400">{">"} Loss recorded: -40</div>
+                <div>{">"} Trade executed: PUT 18500 @ 150</div>
+                <div className="text-green-400">{">"} Profit realized: +50</div>
+                <div className="text-red-400">{">"} Loss recorded: -40</div>
               </div>
             </ScrollArea>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Detailed Trade Log</CardTitle>
+        <Card className="shadow-lg">
+          <CardHeader className="py-6">
+            <CardTitle className="text-2xl font-bold">
+              Detailed Trade Log
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Strike</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Entry</TableHead>
-                  <TableHead>Exit</TableHead>
-                  <TableHead>P/L</TableHead>
+                  <TableHead className="text-lg">Strike</TableHead>
+                  <TableHead className="text-lg">Type</TableHead>
+                  <TableHead className="text-lg">Entry</TableHead>
+                  <TableHead className="text-lg">Exit</TableHead>
+                  <TableHead className="text-lg">P/L</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {trades.map((trade, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{trade.strike}</TableCell>
-                    <TableCell>{trade.type}</TableCell>
-                    <TableCell>{trade.entryPrice}</TableCell>
-                    <TableCell>{trade.exitPrice}</TableCell>
+                  <TableRow key={index} className="h-16">
+                    <TableCell className="text-base">{trade.strike}</TableCell>
+                    <TableCell className="text-base">{trade.type}</TableCell>
+                    <TableCell className="text-base">
+                      {trade.entryPrice}
+                    </TableCell>
+                    <TableCell className="text-base">
+                      {trade.exitPrice}
+                    </TableCell>
                     <TableCell
-                      className={
-                        trade.profit > 0 ? "text-green-500" : "text-red-500"
-                      }
+                      className={`text-base font-medium ${
+                        trade.profit > 0 ? "text-green-600" : "text-red-600"
+                      }`}
                     >
                       {trade.profit > 0 ? `+${trade.profit}` : `-${trade.loss}`}
                     </TableCell>
@@ -228,35 +223,5 @@ const TradingDashboard = () => {
     </div>
   );
 };
-
-function MetricCard({ title, icon, metrics, className }) {
-  return (
-    <div
-      className={`rounded-lg border text-card-foreground shadow-sm hover:shadow-md transition-shadow ${className}`}
-    >
-      <div className="h-[200px] p-6 flex flex-col">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg">{icon}</div>
-          <h3 className="text-lg font-semibold line-clamp-2">{title}</h3>
-        </div>
-
-        <div className="flex-1 flex flex-col items-center justify-center">
-          {metrics.map((metric, index) => (
-            <div key={index} className="text-center">
-              <div className="h-12 flex items-center justify-center">
-                <span className="text-3xl font-bold text-gray-900">
-                  {metric.value}
-                </span>
-              </div>
-              <div className="h-6 flex items-center justify-center">
-                <span className="text-sm text-gray-600">{metric.label}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default TradingDashboard;
